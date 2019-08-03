@@ -10,6 +10,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.util.HashMap;
+
 public class PlanetaryView extends View {
     private int mViewWidth;
     private int mViewHeight;
@@ -107,15 +109,22 @@ public class PlanetaryView extends View {
         // put your code in here to handle the event
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
+                //return true here to propagate this touch event to ACTION_MOVE
                 return true;
             case MotionEvent.ACTION_UP:
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isOrbitCircleBound(x, y)){
                     //Orbiter touched
-                    orbiterCircleX = x;
-                    orbiterCircleY = y;
-
+                    HashMap<String, Double> intersectionPoint =
+                            findIntersectionPoint(x, y, midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + DISTANCE);
+                    if (intersectionPoint.get("x") == null || intersectionPoint.get("y") == null){
+                        orbiterCircleX = x;
+                        orbiterCircleY = y;
+                    }else {
+                        orbiterCircleX = intersectionPoint.get("x").intValue();
+                        orbiterCircleY = intersectionPoint.get("y").intValue();
+                    }
                     // tell the View to redraw the Canvas
                     postInvalidate();
                     return true;
@@ -125,6 +134,30 @@ public class PlanetaryView extends View {
 
         // tell the View that we handled the event
         return isEventConsumed;
+    }
+
+    private HashMap<String, Double> findIntersectionPoint(double lineX1, double lineY1,
+                                       double lineorCenterOfCircleX2, double lineorCenterOfCircleY2,
+                                       double midCircleRadius) {
+        //ready the output
+        HashMap<String, Double> point = new HashMap<>();
+        //get the line equation: (y1-y)/(x1-x) = m
+        double mSlope = 0;
+        mSlope = (lineY1 - lineorCenterOfCircleY2)/ (lineX1 - lineorCenterOfCircleX2);
+        double slopAngleInRadian = Math.atan(-mSlope);
+        double slopAngleInDegree = Math.toDegrees(slopAngleInRadian);
+
+        /* For a circle with origin (j, k) and radius r
+         * x(t) = r cos(t) + j, y(t) = r sin(t) + k
+         * where you need to run this equation for t taking values within the range from 0 to 360,
+         * then you will get your x and y each on the boundary of the circle.
+         */
+        double x = 0, y = 0;
+        x = midCircleRadius * Math.cos(slopAngleInDegree) + lineorCenterOfCircleX2;
+        y = midCircleRadius * Math.sin(slopAngleInDegree) + lineorCenterOfCircleY2;
+        point.put("x", x);
+        point.put("y", y);
+        return point;
     }
 
     private boolean isOrbitCircleBound(int x, int y) {
