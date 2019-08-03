@@ -30,6 +30,7 @@ public class PlanetaryView extends View {
     private final int DISTANCE = 30;
     private final String TAG = "PlanetaryView";
 
+    private boolean shouldCircleMove = false;
 
     public PlanetaryView(Context context) {
         super(context);
@@ -113,20 +114,21 @@ public class PlanetaryView extends View {
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
                 //return true here to propagate this touch event to ACTION_MOVE
+                shouldCircleMove = false;
                 return true;
             case MotionEvent.ACTION_UP:
+                shouldCircleMove = false;
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isOrbitCircleBound(x, y)){
                     //Orbiter touched
+                    shouldCircleMove = true;
                     HashMap<String, Double> intersectionPoint =
                             findIntersectionPoint(x, y, midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + DISTANCE);
                     if (intersectionPoint.get("x") == null || intersectionPoint.get("y") == null){
                         orbiterCircleX = x;
                         orbiterCircleY = y;
                     }else {
-//                        orbiterCircleX = x;
-//                        orbiterCircleY = y;
                         orbiterCircleX = intersectionPoint.get("x").intValue();
                         orbiterCircleY = intersectionPoint.get("y").intValue();
                     }
@@ -199,6 +201,7 @@ public class PlanetaryView extends View {
 //        }
 //        return false;
 
+        if (shouldCircleMove) return true;
         double dx = Math.pow(x - orbiterCircleX, 2);
         double dy = Math.pow(y - orbiterCircleY, 2);
         return dx + dy < Math.pow(orbiterCircleRadius, 2);
