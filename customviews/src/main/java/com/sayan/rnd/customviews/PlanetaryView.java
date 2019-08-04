@@ -262,4 +262,32 @@ public class PlanetaryView extends View {
         mOrbitStrokeColor = orbitStrokeColor;
         postInvalidate();
     }
+
+    public float getCenterCircleRadius() {
+        return mCenterCircleRadius;
+    }
+
+    public float getOrbiterRadius() {
+        return mOrbiterRadius;
+    }
+
+    public float getOrbitDistance() {
+        return mOrbitDistance;
+    }
+
+    public float getOrbitStroke() {
+        return mOrbitStroke;
+    }
+
+    public int getCenterCircleColor() {
+        return mCenterCircleColor;
+    }
+
+    public int getOrbiterColor() {
+        return mOrbiterColor;
+    }
+
+    public int getOrbitStrokeColor() {
+        return mOrbitStrokeColor;
+    }
 }
