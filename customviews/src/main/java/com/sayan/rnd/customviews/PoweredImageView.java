@@ -57,4 +57,13 @@ public class PoweredImageView extends AppCompatImageView {
                 .load(mImageUrl)
                 .into(mBitmapThumbnailImageViewTarget);
     }
+
+    public void setImageUrl(String imageUrl) {
+        this.mImageUrl = imageUrl;
+        postInvalidate();
+    }
+
+    public String getImageUrl() {
+        return mImageUrl;
+    }
 }
