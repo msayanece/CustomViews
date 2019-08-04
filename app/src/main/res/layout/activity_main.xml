@@ -43,6 +43,7 @@
         app:layout_constraintBottom_toTopOf="@id/card"/>
 
     <com.sayan.rnd.customviews.PlanetaryView
+        android:id="@+id/planetaryViewId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="100dp"

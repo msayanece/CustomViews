@@ -32,6 +32,7 @@ public class PlanetaryView extends View {
 
     private final String TAG = "PlanetaryView";
 
+    private boolean isFirstInit = false;
     private boolean shouldCircleMove = false;
 
     //attrs
@@ -82,6 +83,8 @@ public class PlanetaryView extends View {
         mOrbiterCirclePaint.setAntiAlias(true);
         orbitPaint = new Paint();
         orbitPaint.setAntiAlias(true);
+
+        isFirstInit = true;
     }
 
     @Override
@@ -89,31 +92,42 @@ public class PlanetaryView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         mViewWidth = w;
         mViewHeight = h;
+    }
 
-        //other initialization
+    @Override
+    protected void onDraw(Canvas canvas) {
         int halfWidth = mViewWidth / 2;
-        int quarterWidth = mViewWidth / 4;
-        int smallerWidth = mViewWidth / 8;
-
         int halfHeight = mViewHeight / 2;
-        int quarterHeight = mViewHeight / 4;
-        int smallerHeight = mViewHeight / 8;
 
         midCircleX = halfWidth;
         midCircleY = halfHeight;
+
+        //other initialization
+        int quarterWidth = mViewWidth / 4;
+        int smallerWidth = mViewWidth / 8;
+
+        int quarterHeight = mViewHeight / 4;
+        int smallerHeight = mViewHeight / 8;
+
         if (mCenterCircleRadius == 0) {
-            midCircleRadius = mViewHeight < mViewWidth ? quarterHeight : quarterHeight;
-        }else {
+            midCircleRadius = mViewHeight < mViewWidth ? quarterHeight : quarterWidth;
+        } else {
             midCircleRadius = (int) mCenterCircleRadius;
         }
 
         if (mOrbiterRadius == 0) {
             orbiterCircleRadius = mViewHeight < mViewWidth ? smallerHeight : smallerWidth;
-        }else {
+        } else {
             orbiterCircleRadius = (int) mOrbiterRadius;
         }
-        orbiterCircleX = (int) (midCircleX + midCircleRadius /*+ orbiterCircleRadius*/ + mOrbitDistance);
-        orbiterCircleY = (int) (midCircleY + midCircleRadius /*+ orbiterCircleRadius*/ + mOrbitDistance);
+
+        float orbitRadius = midCircleRadius + orbiterCircleRadius + mOrbitDistance;
+
+        if (isFirstInit) {
+            orbiterCircleX = (int) (midCircleX + orbitRadius);
+            orbiterCircleY = (int) (midCircleY);
+            isFirstInit = false;
+        }
 
         mMiddleCirclePaint.setColor(mCenterCircleColor);
         mOrbiterCirclePaint.setColor(mOrbiterColor);
@@ -121,12 +135,10 @@ public class PlanetaryView extends View {
         orbitPaint.setColor(mOrbitStrokeColor);
         orbitPaint.setStrokeWidth(mOrbitStroke);
         orbitPaint.setStyle(Paint.Style.STROKE);
-    }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
+        setNewCenterPositionOfOrbiter(orbiterCircleX, orbiterCircleY);
         canvas.drawCircle(midCircleX, midCircleY, midCircleRadius, mMiddleCirclePaint);
-        canvas.drawCircle(midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + mOrbitDistance, orbitPaint);
+        canvas.drawCircle(midCircleX, midCircleY, orbitRadius, orbitPaint);
         canvas.drawCircle(orbiterCircleX, orbiterCircleY, orbiterCircleRadius, mOrbiterCirclePaint);
 //        canvas.drawLine(midCircleX, midCircleY, orbiterCircleX, orbiterCircleY, mOrbiterCirclePaint);
     }
@@ -175,6 +187,7 @@ public class PlanetaryView extends View {
     /**
      * This method will set the new position of the orbiter circle after calculating from
      * the touch point (inside the circle)
+     *
      * @param x the x value of the touch point
      * @param y the y value of the touch point
      */
@@ -207,5 +220,46 @@ public class PlanetaryView extends View {
         //Unbind the collection object for Garbage Collector
         intersectionPoint.clear();
         intersectionPoint = null;
+    }
+
+    public void setCenterCircleRadius(float radiusDimen) {
+        if (radiusDimen >= 0) {
+            mCenterCircleRadius = radiusDimen;
+        }
+        postInvalidate();
+    }
+
+    public void setOrbiterRadius(float orbiterRadiusDimen) {
+        if (mOrbiterRadius >= 0) {
+            mOrbiterRadius = orbiterRadiusDimen;
+        }
+        postInvalidate();
+    }
+
+    public void setOrbitDistance(float orbitDistanceDimen) {
+        mOrbitDistance = orbitDistanceDimen;
+        postInvalidate();
+    }
+
+    public void setOrbitStroke(float OrbitStrokeDimen) {
+        if (mOrbitStroke >= 0) {
+            mOrbitStroke = OrbitStrokeDimen;
+        }
+        postInvalidate();
+    }
+
+    public void setCenterCircleColor(int centerCircleColor) {
+        mCenterCircleColor = centerCircleColor;
+        postInvalidate();
+    }
+
+    public void setOrbiterColor(int orbiterColor) {
+        mOrbiterColor = orbiterColor;
+        postInvalidate();
+    }
+
+    public void setOrbitStrokeColor(int orbitStrokeColor) {
+        mOrbitStrokeColor = orbitStrokeColor;
+        postInvalidate();
     }
 }
