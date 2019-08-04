@@ -1,6 +1,7 @@
 package com.sayan.rnd.customviews;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -29,10 +30,18 @@ public class PlanetaryView extends View {
     private int midCircleY;
     private int midCircleRadius;
 
-    private final int DISTANCE = 30;
     private final String TAG = "PlanetaryView";
 
     private boolean shouldCircleMove = false;
+
+    //attrs
+    private float mCenterCircleRadius;
+    private float mOrbiterRadius;
+    private float mOrbitDistance;
+    private float mOrbitStroke;
+    private int mCenterCircleColor;
+    private int mOrbiterColor;
+    private int mOrbitStrokeColor;
 
     public PlanetaryView(Context context) {
         super(context);
@@ -51,6 +60,22 @@ public class PlanetaryView extends View {
 
     private void init(@Nullable AttributeSet attrs) {
         if (attrs == null) return;
+        //attrs
+        //get TypedArray for PlanetaryView for obtaining the attribute value
+        TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.PlanetaryView);
+        //get the attrs
+        mCenterCircleRadius = typedArray.getDimension(R.styleable.PlanetaryView_centerCircleRadius, 0);
+        mOrbiterRadius = typedArray.getDimension(R.styleable.PlanetaryView_orbiterRadius, 0);
+        mOrbitDistance = typedArray.getDimension(R.styleable.PlanetaryView_orbitDistance, 0);
+        mOrbitStroke = typedArray.getDimension(R.styleable.PlanetaryView_orbitStroke, 5);
+
+        mCenterCircleColor = typedArray.getColor(R.styleable.PlanetaryView_centerCircleColor, Color.RED);
+        mOrbiterColor = typedArray.getColor(R.styleable.PlanetaryView_orbiterColor, Color.BLUE);
+        mOrbitStrokeColor = typedArray.getColor(R.styleable.PlanetaryView_orbitStrokeColor, Color.GRAY);
+        //free for Garbage Collector
+        typedArray.recycle();
+
+        //paints
         mMiddleCirclePaint = new Paint();
         mMiddleCirclePaint.setAntiAlias(true);
         mOrbiterCirclePaint = new Paint();
@@ -76,26 +101,34 @@ public class PlanetaryView extends View {
 
         midCircleX = halfWidth;
         midCircleY = halfHeight;
-        midCircleRadius = mViewHeight < mViewWidth ? quarterHeight : quarterHeight;
+        if (mCenterCircleRadius == 0) {
+            midCircleRadius = mViewHeight < mViewWidth ? quarterHeight : quarterHeight;
+        }else {
+            midCircleRadius = (int) mCenterCircleRadius;
+        }
 
-        orbiterCircleRadius = mViewHeight < mViewWidth ? smallerHeight : smallerWidth;
-        orbiterCircleX = midCircleX + midCircleRadius /*+ orbiterCircleRadius*/ + DISTANCE;
-        orbiterCircleY = midCircleY + midCircleRadius /*+ orbiterCircleRadius*/ + DISTANCE;
+        if (mOrbiterRadius == 0) {
+            orbiterCircleRadius = mViewHeight < mViewWidth ? smallerHeight : smallerWidth;
+        }else {
+            orbiterCircleRadius = (int) mOrbiterRadius;
+        }
+        orbiterCircleX = (int) (midCircleX + midCircleRadius /*+ orbiterCircleRadius*/ + mOrbitDistance);
+        orbiterCircleY = (int) (midCircleY + midCircleRadius /*+ orbiterCircleRadius*/ + mOrbitDistance);
 
-        mMiddleCirclePaint.setColor(Color.RED);
-        mOrbiterCirclePaint.setColor(Color.BLUE);
+        mMiddleCirclePaint.setColor(mCenterCircleColor);
+        mOrbiterCirclePaint.setColor(mOrbiterColor);
 
-        orbitPaint.setColor(Color.BLACK);
-        orbitPaint.setStrokeWidth(5);
+        orbitPaint.setColor(mOrbitStrokeColor);
+        orbitPaint.setStrokeWidth(mOrbitStroke);
         orbitPaint.setStyle(Paint.Style.STROKE);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawCircle(midCircleX, midCircleY, midCircleRadius, mMiddleCirclePaint);
-        canvas.drawCircle(midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + DISTANCE, orbitPaint);
+        canvas.drawCircle(midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + mOrbitDistance, orbitPaint);
         canvas.drawCircle(orbiterCircleX, orbiterCircleY, orbiterCircleRadius, mOrbiterCirclePaint);
-        canvas.drawLine(midCircleX, midCircleY, orbiterCircleX, orbiterCircleY, mOrbiterCirclePaint);
+//        canvas.drawLine(midCircleX, midCircleY, orbiterCircleX, orbiterCircleY, mOrbiterCirclePaint);
     }
 
     @Override
@@ -155,7 +188,7 @@ public class PlanetaryView extends View {
                 y,              //the touch point(x,y) must be a point of line
                 midCircleX,
                 midCircleY,     //the center point of the orbit
-                midCircleRadius + orbiterCircleRadius + DISTANCE    //The orbit radius
+                midCircleRadius + orbiterCircleRadius + mOrbitDistance    //The orbit radius
         );
 
         if (intersectionPoint.get("x") == null || intersectionPoint.get("y") == null) {

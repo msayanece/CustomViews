@@ -44,9 +44,18 @@
 
     <com.sayan.rnd.customviews.PlanetaryView
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:paddingTop="100dp"
         android:paddingBottom="100dp"
+
+        app:orbitDistance="30dp"
+        app:centerCircleRadius="60dp"
+        app:orbiterRadius="40dp"
+
+        app:centerCircleColor="@color/colorPrimary"
+        app:orbiterColor="@color/colorPrimaryDark"
+        app:orbitStrokeColor="@android:color/darker_gray"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -3,4 +3,16 @@
     <declare-styleable name="PoweredImageView">
         <attr name="imageUrl" format="string"/>
     </declare-styleable>
+
+    <declare-styleable name="PlanetaryView">
+        <attr name="centerCircleRadius" format="dimension"/>
+        <attr name="orbiterRadius" format="dimension"/>
+        <attr name="orbitDistance" format="dimension"/>
+        <attr name="orbitStroke" format="dimension"/>
+
+        <attr name="centerCircleColor" format="color"/>
+        <attr name="orbiterColor" format="color"/>
+        <attr name="orbitStrokeColor" format="color"/>
+
+    </declare-styleable>
 </resources>
