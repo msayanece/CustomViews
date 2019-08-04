@@ -11,6 +11,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.sayan.rnd.customviews.utils.PlanetaryViewUtil;
+
 import java.util.HashMap;
 
 
@@ -47,11 +49,6 @@ public class PlanetaryView extends View {
         init(attrs);
     }
 
-    public PlanetaryView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        init(attrs);
-    }
-
     private void init(@Nullable AttributeSet attrs) {
         if (attrs == null) return;
         mMiddleCirclePaint = new Paint();
@@ -63,7 +60,7 @@ public class PlanetaryView extends View {
     }
 
     @Override
-    public void onSizeChanged (int w, int h, int oldw, int oldh){
+    public void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         mViewWidth = w;
         mViewHeight = h;
@@ -79,9 +76,9 @@ public class PlanetaryView extends View {
 
         midCircleX = halfWidth;
         midCircleY = halfHeight;
-        midCircleRadius = mViewHeight<mViewWidth ? quarterHeight : quarterHeight;
+        midCircleRadius = mViewHeight < mViewWidth ? quarterHeight : quarterHeight;
 
-        orbiterCircleRadius = mViewHeight<mViewWidth ? smallerHeight : smallerWidth;
+        orbiterCircleRadius = mViewHeight < mViewWidth ? smallerHeight : smallerWidth;
         orbiterCircleX = midCircleX + midCircleRadius /*+ orbiterCircleRadius*/ + DISTANCE;
         orbiterCircleY = midCircleY + midCircleRadius /*+ orbiterCircleRadius*/ + DISTANCE;
 
@@ -103,107 +100,79 @@ public class PlanetaryView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        //Save the boolean value from super method for the case of not-handling this event later
         boolean isEventConsumed = super.onTouchEvent(event);
         int eventAction = event.getAction();
 
         // you may need the x/y location
-        int x = (int)event.getX();
-        int y = (int)event.getY();
+        int x = (int) event.getX();
+        int y = (int) event.getY();
 
         // put your code in here to handle the event
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-                //return true here to propagate this touch event to ACTION_MOVE
+                /* First touch - reset circle move flag for checking isOrbitCircleBound
+                 * No need, but precaution
+                 */
                 shouldCircleMove = false;
+                //return true here to propagate this touch event to ACTION_MOVE
                 return true;
             case MotionEvent.ACTION_UP:
+                //Last touch - reset circle move flag
                 shouldCircleMove = false;
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (isOrbitCircleBound(x, y)){
+                //Check if the touch happen inside the circle bound
+                if (shouldCircleMove || PlanetaryViewUtil.isOrbitCircleBound(x, y, orbiterCircleX, orbiterCircleY, orbiterCircleRadius)) {
                     //Orbiter touched
                     shouldCircleMove = true;
-                    HashMap<String, Double> intersectionPoint =
-                            findIntersectionPoint(x, y, midCircleX, midCircleY, midCircleRadius + orbiterCircleRadius + DISTANCE);
-                    if (intersectionPoint.get("x") == null || intersectionPoint.get("y") == null){
-                        orbiterCircleX = x;
-                        orbiterCircleY = y;
-                    }else {
-                        orbiterCircleX = intersectionPoint.get("x").intValue();
-                        orbiterCircleY = intersectionPoint.get("y").intValue();
-                    }
-                    Log.d(TAG, "x:" + intersectionPoint.get("x") + ", y:" + intersectionPoint.get("y"));
-                    intersectionPoint.clear();
-                    intersectionPoint = null;
+                    setNewCenterPositionOfOrbiter(x, y);
                     // tell the View to redraw the Canvas
                     postInvalidate();
+                    // tell other listeners that we handled the event
                     return true;
                 }
                 break;
         }
 
-        // tell the View that we handled the event
+        // We did not handle the event, will work same as super method implementation.
         return isEventConsumed;
     }
 
-    private HashMap<String, Double> findIntersectionPoint(double lineX1, double lineY1,
-                                       double lineorCenterOfCircleX2, double lineorCenterOfCircleY2,
-                                       double midCircleRadius) {
-        //ready the output
-        HashMap<String, Double> point = new HashMap<>();
-        //get the line equation: (y1-y)/(x1-x) = m
-        double mSlope = 0;
-        Log.d(TAG, "Center:" + lineorCenterOfCircleX2 + "," + lineorCenterOfCircleY2);
-        Log.d(TAG, "end:" + lineX1 + "," + lineY1);
-        mSlope = (lineorCenterOfCircleY2 - lineY1) /(lineorCenterOfCircleX2 - lineX1);
-        double slopAngleInRadian = Math.atan(mSlope);
-        double slopAngleInDegree = Math.toDegrees(slopAngleInRadian);
-        Log.d(TAG, "ACTUAL_SLOPE:" + slopAngleInDegree);
-
-        if ((lineorCenterOfCircleX2-lineX1) < 0 && (lineorCenterOfCircleY2-lineY1) >= 0 ){
-            //1st quadrant
-            slopAngleInDegree = -slopAngleInDegree;
-        }else if ((lineorCenterOfCircleX2-lineX1) >= 0 && (lineorCenterOfCircleY2-lineY1) >= 0 ) {
-            //2nd quadrant
-            slopAngleInDegree = 180 - slopAngleInDegree;
-        }else if ((lineorCenterOfCircleX2-lineX1) >= 0 && (lineorCenterOfCircleY2-lineY1) < 0 ){
-            //3rd quadrant
-            slopAngleInDegree = 180 - slopAngleInDegree;
-        }else {
-            //4th quadrant
-            slopAngleInDegree = 360 - slopAngleInDegree;
-        }
-//        if ((lineX1 - lineorCenterOfCircleX2) <= 0) {
-//            mSlope = -mSlope;
-//        }
-        Log.d(TAG, "SLOPE:" + mSlope + ", RAD:" + slopAngleInRadian + ", DEG:" + slopAngleInDegree);
-        Log.d(TAG, "Radius:" + midCircleRadius + ", centerX:" + lineorCenterOfCircleX2 + ", centerY:" + lineorCenterOfCircleY2);
-
-        /* For a circle with origin (j, k) and radius r
-         * x(t) = r cos(t) + j, y(t) = r sin(t) + k
-         * where you need to run this equation for t taking values within the range from 0 to 360,
-         * then you will get your x and y each on the boundary of the circle.
+    /**
+     * This method will set the new position of the orbiter circle after calculating from
+     * the touch point (inside the circle)
+     * @param x the x value of the touch point
+     * @param y the y value of the touch point
+     */
+    private void setNewCenterPositionOfOrbiter(int x, int y) {
+        /* Find the intersection point of the line through the center of orbit &
+         * the touch point and the orbit, so that the orbiter can be placed on the
+         * intersection point.
          */
-        double x = 0, y = 0;
-        //find intersection point with respect to (0,0) as center
-        x = (midCircleRadius * Math.cos(Math.toRadians(slopAngleInDegree))) + lineorCenterOfCircleX2;
-        y = -(midCircleRadius * Math.sin(Math.toRadians(slopAngleInDegree))) + lineorCenterOfCircleY2;
-        //find intersection point with respect to the actual circle's center
+        HashMap<String, Double> intersectionPoint = PlanetaryViewUtil.findIntersectionPoint(
+                x,
+                y,              //the touch point(x,y) must be a point of line
+                midCircleX,
+                midCircleY,     //the center point of the orbit
+                midCircleRadius + orbiterCircleRadius + DISTANCE    //The orbit radius
+        );
 
-        point.put("x", x);
-        point.put("y", y);
-        return point;
-    }
+        if (intersectionPoint.get("x") == null || intersectionPoint.get("y") == null) {
+            /* This is an impossible case, but needs to be checking,
+             * set the orbiter center on the touch point
+             */
+            orbiterCircleX = x;
+            orbiterCircleY = y;
+        } else {
+            //Set the orbiter center on the intersection point
+            orbiterCircleX = intersectionPoint.get("x").intValue();
+            orbiterCircleY = intersectionPoint.get("y").intValue();
+        }
+        Log.d(TAG, "x:" + intersectionPoint.get("x") + ", y:" + intersectionPoint.get("y"));
 
-    private boolean isOrbitCircleBound(int x, int y) {
-//        if (x > (orbiterCircleX - orbiterCircleRadius) && x < (orbiterCircleX + orbiterCircleRadius)){
-//            return y > (orbiterCircleY - orbiterCircleRadius) && y < (orbiterCircleY + orbiterCircleRadius);
-//        }
-//        return false;
-
-        if (shouldCircleMove) return true;
-        double dx = Math.pow(x - orbiterCircleX, 2);
-        double dy = Math.pow(y - orbiterCircleY, 2);
-        return dx + dy < Math.pow(orbiterCircleRadius, 2);
+        //Unbind the collection object for Garbage Collector
+        intersectionPoint.clear();
+        intersectionPoint = null;
     }
 }
