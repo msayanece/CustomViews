@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -43,6 +44,7 @@ public class PlanetaryView extends View {
     private int mCenterCircleColor;
     private int mOrbiterColor;
     private int mOrbitStrokeColor;
+    private Paint textPaint;
 
     public PlanetaryView(Context context) {
         super(context);
@@ -83,6 +85,8 @@ public class PlanetaryView extends View {
         mOrbiterCirclePaint.setAntiAlias(true);
         orbitPaint = new Paint();
         orbitPaint.setAntiAlias(true);
+        textPaint = new Paint();
+        textPaint.setAntiAlias(true);
 
         isFirstInit = true;
     }
@@ -136,10 +140,16 @@ public class PlanetaryView extends View {
         orbitPaint.setStrokeWidth(mOrbitStroke);
         orbitPaint.setStyle(Paint.Style.STROKE);
 
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setTextSize(20);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
         setNewCenterPositionOfOrbiter(orbiterCircleX, orbiterCircleY);
         canvas.drawCircle(midCircleX, midCircleY, midCircleRadius, mMiddleCirclePaint);
         canvas.drawCircle(midCircleX, midCircleY, orbitRadius, orbitPaint);
         canvas.drawCircle(orbiterCircleX, orbiterCircleY, orbiterCircleRadius, mOrbiterCirclePaint);
+        canvas.drawText("He", midCircleX, midCircleY, textPaint);
 //        canvas.drawLine(midCircleX, midCircleY, orbiterCircleX, orbiterCircleY, mOrbiterCirclePaint);
     }
 
